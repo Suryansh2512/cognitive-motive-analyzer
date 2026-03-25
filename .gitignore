@@ -1,0 +1,33 @@
+venv/
+.env
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Data — raw dumps can be huge, don't commit them
+data/raw/
+data/cleaned/
+
+# Model weights — too large for git
+models/
+*.bin
+*.safetensors
+*.pt
+*.ckpt
+
+# Kaggle credentials
+.kaggle/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Logs and runs
+wandb/
+runs/
+logs/
+
+# OS
+.DS_Store
+Thumbs.db

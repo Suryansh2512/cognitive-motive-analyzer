@@ -1,0 +1,71 @@
+# =============================================================================
+# Cognitive Motive Analyzer — full requirements
+# =============================================================================
+#
+# IMPORTANT: Install PyTorch FIRST, separately, before running pip install -r
+#
+#   pip install torch torchvision torchaudio \
+#       --index-url https://download.pytorch.org/whl/cu121
+#
+# cu121 = CUDA 12.1, correct for RTX 4060.
+# After that, run: pip install -r requirements.txt
+# =============================================================================
+
+
+# ── Core ML: model loading, fine-tuning, inference ───────────────────────────
+transformers>=4.40.0          # HuggingFace model hub, tokenizers, Trainer
+peft>=0.10.0                  # LoRA / QLoRA adapter training
+bitsandbytes>=0.43.0          # 4-bit / 8-bit quantization (required for QLoRA)
+accelerate>=0.29.0            # multi-GPU / mixed precision training utilities
+datasets>=2.18.0              # HuggingFace dataset loading and processing
+tokenizers>=0.19.0            # fast tokenizer backend (used by transformers)
+safetensors>=0.4.0            # safe model weight format (faster than .bin)
+sentencepiece>=0.2.0          # required by Mistral / LLaMA tokenizers
+
+
+# ── Data collection ───────────────────────────────────────────────────────────
+kaggle>=1.6.0                 # Kaggle CLI — download datasets
+praw>=7.7.0                   # Reddit API wrapper
+pandas>=2.0.0                 # dataframes for cleaning and inspecting data
+numpy>=1.26.0                 # numerical operations
+tqdm>=4.66.0                  # progress bars
+requests>=2.31.0              # HTTP requests (fallback scraping)
+python-dotenv>=1.0.0          # loads .env file into os.environ
+beautifulsoup4>=4.12.0        # HTML parsing if scraping web sources
+lxml>=5.0.0                   # fast XML/HTML parser (used by beautifulsoup4)
+
+
+# ── Data cleaning and NLP utilities ──────────────────────────────────────────
+nltk>=3.8.0                   # tokenization, stopwords, text utilities
+regex>=2024.0.0               # better regex than stdlib re
+ftfy>=6.2.0                   # fixes broken unicode in scraped text
+langdetect>=1.0.9             # detect and filter non-English posts
+
+
+# ── Evaluation ────────────────────────────────────────────────────────────────
+evaluate>=0.4.0               # HuggingFace evaluation framework
+rouge-score>=0.1.2            # ROUGE metric (text overlap)
+bert-score>=0.3.13            # BERTScore (semantic similarity)
+scipy>=1.12.0                 # statistical tests for evaluation results
+scikit-learn>=1.4.0           # classification metrics, confusion matrix
+
+
+# ── Experiment tracking and logging ──────────────────────────────────────────
+wandb>=0.16.0                 # Weights & Biases — tracks training runs
+tensorboard>=2.16.0           # alternative training visualizer
+huggingface-hub>=0.22.0       # upload / download models from HF Hub
+
+
+# ── Interface ─────────────────────────────────────────────────────────────────
+gradio>=4.0.0                 # quick web UI for demos
+fastapi>=0.110.0              # REST API (for later web app backend)
+uvicorn>=0.29.0               # ASGI server to run FastAPI
+
+
+# ── Utilities ─────────────────────────────────────────────────────────────────
+matplotlib>=3.8.0             # plot training loss, evaluation curves
+seaborn>=0.13.0               # nicer plots
+jupyterlab>=4.0.0             # notebooks for exploration and analysis
+ipywidgets>=8.1.0             # interactive widgets in notebooks
+pyarrow>=15.0.0               # fast columnar storage (used by datasets)
+jsonlines>=4.0.0              # read/write .jsonl files cleanly
