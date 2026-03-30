@@ -36,7 +36,7 @@ def _load_model():
 
     base = AutoModelForCausalLM.from_pretrained(
         "mistralai/Mistral-7B-Instruct-v0.2",
-        torch_dtype=torch.float16,
+        dtype=torch.float16,
         device_map="auto",
     )
     _model = PeftModel.from_pretrained(base, MODEL_DIR)

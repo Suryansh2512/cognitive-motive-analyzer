@@ -33,10 +33,10 @@ TRAIN_FILE  = Path("data/cleaned/train.jsonl")
 VAL_FILE    = Path("data/cleaned/val.jsonl")
 OUTPUT_DIR  = Path("models/motive-model")
 
-MAX_LENGTH  = 512    # token limit per example
-BATCH_SIZE  = 2      # keep low for 8GB VRAM
-GRAD_ACCUM  = 8      # effective batch = 2 * 8 = 16
-EPOCHS      = 3
+MAX_LENGTH  = 128    # was 256
+BATCH_SIZE  = 4      # keep
+GRAD_ACCUM  = 2      # was 4
+EPOCHS      = 1      # keep
 LR          = 2e-4
 
 # LoRA settings — these control how much of the model we adapt
@@ -137,10 +137,13 @@ def main():
         learning_rate=LR,
         fp16=True,
         logging_steps=50,
-        eval_strategy="epoch",
-        save_strategy="epoch",
+        eval_strategy="steps",
+        eval_steps=500,
+        save_strategy="steps",
+        save_steps=500,              # save checkpoint every 500 steps
+        save_total_limit=3,          # keep only 3 most recent checkpoints
         load_best_model_at_end=True,
-        report_to="wandb",           # remove this line if you don't want wandb
+        report_to="none",
         run_name="motive-model-v1",
     )
 
