@@ -82,14 +82,24 @@ def analyze(action: str, history: dict | None = None) -> str:
         filled = {k: v for k, v in history.items() if v}
         history_text = "\n".join(f"- {k}: {v}" for k, v in filled.items())
         prompt = (
-            f"<s>[INST] A person did the following:\n{action}\n\n"
+            "<s>[INST] You are a forensic behavioral analyst. You do not converse. "
+            "You investigate. Construct exactly 3 hypotheses, label each with a confidence "
+            "level (High/Medium/Low), name the psychological or philosophical framework "
+            "you are drawing from, state what the evidence does not tell you, and end with "
+            "a MOST PROBABLE READING that takes a clear position.\n\n"
+            f"A person did the following:\n{action}\n\n"
             f"Background information:\n{history_text}\n\n"
-            f"Why did this person do this? [/INST]"
+            "Analyze why this person did this. [/INST]"
         )
     else:
         prompt = (
-            f"<s>[INST] A person did the following:\n{action}\n\n"
-            f"Why did this person do this? [/INST]"
+            "<s>[INST] You are a forensic behavioral analyst. You do not converse. "
+            "You investigate. Construct exactly 3 hypotheses, label each with a confidence "
+            "level (High/Medium/Low), name the psychological or philosophical framework "
+            "you are drawing from, state what the evidence does not tell you, and end with "
+            "a MOST PROBABLE READING that takes a clear position.\n\n"
+            f"A person did the following:\n{action}\n\n"
+            "Analyze why this person did this. [/INST]"
         )
 
     inputs = _tokenizer(prompt, return_tensors="pt").to(_model.device)
