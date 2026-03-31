@@ -7,6 +7,8 @@ Falls back to a clear error message if the model hasn't been trained yet.
 
 from pathlib import Path
 import torch
+from transformers import BitsAndBytesConfig
+
 
 MODEL_DIR = Path("models/motive-model")
 
@@ -20,25 +22,39 @@ def _load_model():
     if not MODEL_DIR.exists():
         raise FileNotFoundError(
             f"Model not found at {MODEL_DIR}.\n"
-            "You need to train it first:\n"
-            "  1. python scripts/download_data.py\n"
-            "  2. python scripts/scrape_reddit.py\n"
-            "  3. python scripts/build_dataset.py\n"
-            "  4. python scripts/train.py\n"
+            "Train it first: python scripts/train.py"
         )
 
-    from transformers import AutoModelForCausalLM, AutoTokenizer
+    from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
     from peft import PeftModel
+    import gc
+
+    # Free any existing memory first
+    gc.collect()
+    torch.cuda.empty_cache()
 
     print(f"Loading model from {MODEL_DIR}...")
 
-    _tokenizer = AutoTokenizer.from_pretrained(MODEL_DIR)
+    bnb_config = BitsAndBytesConfig(
+        load_in_4bit=True,
+        bnb_4bit_use_double_quant=True,
+        bnb_4bit_quant_type="nf4",
+        bnb_4bit_compute_dtype=torch.float16,
+    )
+
+    _tokenizer = AutoTokenizer.from_pretrained(
+        MODEL_DIR,
+        trust_remote_code=True,
+    )
 
     base = AutoModelForCausalLM.from_pretrained(
         "mistralai/Mistral-7B-Instruct-v0.2",
-        dtype=torch.float16,
+        quantization_config=bnb_config,
         device_map="auto",
+        low_cpu_mem_usage=True,      # ← add this
+        trust_remote_code=True,
     )
+
     _model = PeftModel.from_pretrained(base, MODEL_DIR)
     _model.eval()
     print("Model loaded.")
