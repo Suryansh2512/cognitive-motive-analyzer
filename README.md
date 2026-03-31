@@ -1,230 +1,282 @@
-# Cognitive Motive Analyzer
+# 🧠 Cognitive Motive Analyzer
 
-A fine-tuned language model that analyzes why a person did something —
-drawing on psychology, philosophy, religion, and real human behaviour data.
+> *"The detective does not guess. He reasons. Every broken object, every open door, every missing word is a sentence in a confession."*
 
-Given a description of what someone did, the model explains the most likely
-psychological and philosophical drivers. When background is provided
-(upbringing, trauma, beliefs, relationships), it pins down the specific
-framework most likely at play for that individual.
+A forensic behavioral AI that reasons about **why** people do things — not just what they did.  
+Fine-tuned on Mistral-7B-Instruct using QLoRA, drawing from psychology, philosophy, criminology, and religious texts.
 
 ---
 
-## What this is
+## What This Is
 
-Most NLP systems label emotions or classify sentiment. This model does
-something different — it *reasons* about human motivation. It is trained
-on real accounts of human behaviour (Reddit, biographical data) and shaped
-by philosophical and psychological frameworks (Nietzsche, Aristotle,
-Maslow, Freud, the Gita, the Quran, the Bible, wartime psychology).
+Most NLP systems label emotions or classify sentiment. This is different.
 
-The model has two modes:
+Given a description of a behavior — or a crime scene — the model **investigates**. It constructs competing hypotheses, ranks them by likelihood, draws from multiple frameworks (Freudian, existentialist, Jungian, Dharmic, criminological), and arrives at a structured reading of probable mental state and motive.
 
-- **No history** — gives a multi-lens overview of plausible drivers
-- **With history** — picks the single most likely framework given what
-  is known about the person, flags contradictions as red flags, and
-  states its confidence level
+It does not converse. It does not guess. It reasons.
+
+### Two Modes
+
+| Mode | Input | Output |
+|------|-------|--------|
+| **Behavioral Analysis** | What someone did + optional background | Ranked hypotheses with framework citations |
+| **Crime Scene Analysis** *(in development)* | Scene description, victim findings, physical evidence | Reconstructed perpetrator mental state at time of act |
+
+### Example Output (target behavior post-training)
+
+```
+Input: A man left flowers at his estranged father's grave every year
+       but never attended the funeral.
+
+HYPOTHESIS 1 [High confidence] — Unresolved attachment with avoidance
+  The subject maintains ritual connection (flowers) while refusing
+  communal grief (funeral). Classic ambivalent attachment. The gesture
+  is private — not performed for others — suggesting the relationship
+  was real to him, but unbearable to display.
+
+HYPOTHESIS 2 [Medium confidence] — Guilt without resolution
+  Psychoanalytically: the flowers are reparative, a symbolic attempt
+  to repair an object relation that was never closed. The absence at
+  the funeral may represent punishment of the self — he does not
+  deserve to mourn publicly.
+
+HYPOTHESIS 3 [Low confidence] — Cultural/religious obligation
+  In some frameworks (Hindu, Confucian), honoring the dead is duty
+  regardless of relationship quality. The act may be ritual rather
+  than emotional. Requires more context.
+
+MOST PROBABLE: The subject loved his father and never said it.
+The flowers are what he could not say in life.
+```
 
 ---
 
-## Project structure
+## The Crime Scene Vision
+
+The system's long-term goal is forensic psychological reconstruction.
+
+When presented with a crime scene — physical evidence, victim state, spatial layout — the model should not just pattern-match. It should ask: *what was the perpetrator thinking?*
+
+A broken flower pot is not necessarily a weapon. It may have tipped over during a panicked exit. A door left open is not necessarily evidence of haste — it may be staging. The model is designed to hold **multiple causal chains simultaneously** and rank them, rather than collapsing to the first plausible story.
+
+This is the difference between correlation-based inference and **causal mental-state modeling**.
+
+---
+
+## Project Structure
 
 ```
 cognitive-motive-analyzer/
 │
 ├── data/
-│   ├── raw/                  ← Kaggle + Reddit dumps (not committed to git)
-│   ├── cleaned/              ← formatted training pairs (not committed)
+│   ├── raw/                  ← Kaggle + Reddit dumps (gitignored)
+│   ├── cleaned/              ← formatted training pairs (gitignored)
 │   └── history.json          ← saved session analyses
 │
 ├── scripts/
-│   ├── download_data.py      ← pulls Reddit datasets from Kaggle
+│   ├── download_data.py      ← pulls behavioral datasets from Kaggle/HF
 │   ├── scrape_reddit.py      ← scrapes live Reddit posts via PRAW
 │   ├── build_dataset.py      ← formats raw data into training pairs
 │   └── train.py              ← QLoRA fine-tuning on Mistral-7B
 │
 ├── src/
 │   ├── model/
-│   │   └── inference.py      ← loads model + runs analysis
+│   │   └── inference.py      ← loads model, runs forensic analysis
 │   └── memory/
 │       └── history.py        ← saves and loads session history
 │
-├── main.py                   ← run this to use the analyzer
+├── models/
+│   └── motive-model/         ← trained LoRA adapter (gitignored)
+│
+├── main.py                   ← CLI entry point
 ├── requirements.txt
-├── .env.example              ← copy to .env and fill in your keys
+├── .env.example
 └── .gitignore
 ```
 
 ---
 
-## First time setup
+## Setup
 
-### 1. Add this project to git and push to GitHub
+### Prerequisites
 
-If you are starting fresh from the zip:
+- Python **3.11** (not 3.12 or 3.13 — PyTorch wheels don't exist for those yet)
+- NVIDIA GPU with CUDA 12.1+ (tested on RTX 4060)
+- ~15GB free disk space for model weights
+
+### 1. Clone and enter the project
 
 ```bash
+git clone https://github.com/Suryansh2512/cognitive-motive-analyzer.git
 cd cognitive-motive-analyzer
-git init
-git remote add origin https://github.com/Suryansh2512/cognitive-motive-analyzer.git
 ```
 
-Make sure `.gitignore` is in place (it is — it excludes data/, models/, venv/, .env),
-then stage everything and push:
+### 2. Create a virtual environment with Python 3.11
 
 ```bash
-git add .
-git commit -m "feat: v2 — new training pipeline, QLoRA fine-tuning setup"
-git branch -M main
-git push --force origin main
-```
+py -3.11 -m venv venv
 
-The `--force` is needed because this is a fresh folder replacing the old repo.
-After this first push, never use `--force` again — just `git push origin main`.
-
-### 2. Create a virtual environment
-
-```bash
-python -m venv venv
-```
-
-Activate it:
-
-```bash
-# Windows
+# Activate — Windows
 venv\Scripts\activate
 
-# Mac / Linux
+# Activate — Mac/Linux
 source venv/bin/activate
 ```
 
-You should see `(venv)` in your terminal prompt.
-
-### 3. Install PyTorch with CUDA
-
-This must be installed separately before anything else.
-Your GPU is an RTX 4060 which uses CUDA 12.1:
+### 3. Install PyTorch with CUDA (must be first)
 
 ```bash
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 ```
 
-Verify it worked:
+Verify GPU is detected:
 
 ```bash
-python -c "import torch; print(torch.cuda.is_available())"
+python -c "import torch; print(torch.cuda.is_available()); print(torch.cuda.get_device_name(0))"
+# Expected: True  /  NVIDIA GeForce RTX 4060
 ```
 
-This should print `True`. If it prints `False` your CUDA drivers need updating.
-
-### 4. Install all other dependencies
+### 4. Install remaining dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 5. Set up your API keys
+### 5. Fix bitsandbytes for Windows CUDA
 
 ```bash
-# Windows
-copy .env.example .env
-
-# Mac / Linux
-cp .env.example .env
+pip uninstall bitsandbytes -y
+pip install bitsandbytes --prefer-binary --extra-index-url https://jllllll.github.io/bitsandbytes-windows-webui
 ```
 
-Open `.env` and fill in your keys. See the API keys section below.
-
----
-
-## API keys
-
-| Key | Where to get it | Required? |
-|-----|----------------|-----------|
-| Reddit client ID + secret | reddit.com/prefs/apps → Create App → script | Yes, for scraping |
-| Kaggle token | kaggle.com/settings → API → Create New Token | Yes, for datasets |
-| Weights & Biases | wandb.ai/settings | Optional — tracks training |
-| HuggingFace token | huggingface.co/settings/tokens | Optional — upload model |
-
-**Reddit setup:**
-1. Go to reddit.com/prefs/apps
-2. Click "Create App" at the bottom
-3. Choose type: **script**
-4. Name it anything, set redirect URI to `http://localhost`
-5. Copy the ID shown under your app name → `REDDIT_CLIENT_ID`
-6. Copy the secret → `REDDIT_CLIENT_SECRET`
-
-**Kaggle setup:**
-1. Go to kaggle.com/settings
-2. Scroll to API → click "Create New Token"
-3. A file called `kaggle.json` downloads
-4. Place it at `C:\Users\surya\.kaggle\kaggle.json`
-5. No env var needed — the kaggle CLI reads it automatically
-
----
-
-## Training the model
-
-Run these four steps in order. Each one must finish before the next:
+### 6. Configure environment
 
 ```bash
-# Step 1 — Download Reddit datasets from Kaggle
+copy .env.example .env   # Windows
+cp .env.example .env     # Mac/Linux
+```
+
+Fill in `.env`:
+
+```env
+REDDIT_CLIENT_ID=your_id
+REDDIT_CLIENT_SECRET=your_secret
+REDDIT_USER_AGENT=CognitiveMotive/1.0
+HF_TOKEN=hf_yourtoken
+KAGGLE_USERNAME=your_username
+WANDB_API_KEY=your_key        # optional, for training tracking
+```
+
+---
+
+## API Keys
+
+| Key | Source | Required for |
+|-----|--------|-------------|
+| Reddit Client ID + Secret | reddit.com/prefs/apps → Create App → script | Scraping behavioral data |
+| Kaggle token | kaggle.com/settings → API → Create Token → place at `~/.kaggle/kaggle.json` | Dataset download |
+| HuggingFace token | huggingface.co/settings/tokens | Model download / upload |
+| Weights & Biases | wandb.ai/settings | Training visualization (optional) |
+
+---
+
+## Training the Model
+
+Run the pipeline in order:
+
+```bash
+# 1. Download behavioral datasets (Reddit AITA, etc.)
 python scripts/download_data.py
 
-# Step 2 — Scrape live Reddit posts (requires Reddit keys in .env)
+# 2. Scrape live Reddit posts via PRAW
 python scripts/scrape_reddit.py
 
-# Step 3 — Clean and format data into training pairs
+# 3. Clean and format into training pairs
 python scripts/build_dataset.py
 
-# Step 4 — Fine-tune Mistral-7B using QLoRA (takes 2–4 hours)
+# 4. Fine-tune Mistral-7B with QLoRA (~2–4 hours on RTX 4060)
 python scripts/train.py
 ```
 
-The trained model is saved to `models/motive-model/`.
-This folder is in `.gitignore` — model weights are too large for GitHub.
+Trained adapter is saved to `models/motive-model/`.
+
+### Training Data Philosophy
+
+The model is not trained on raw text. It is trained on **structured reasoning examples** — each one models the *process* of hypothesis construction, not just the answer. Training sources include:
+
+- Reddit AITA + behavioral threads (real human moral reasoning)
+- Project Gutenberg texts: Bhagavad Gita, Bible, Quran, Meditations (Marcus Aurelius), Crime and Punishment
+- Criminal Minds scripts (forensic reasoning patterns)
+- Synthesized crime scene analysis examples
+
+The goal is a model that reasons like a detective and cites like a scholar.
 
 ---
 
-## Running the analyzer
-
-Once training is complete:
+## Running the Analyzer
 
 ```bash
 python main.py
 ```
 
-You will be prompted to describe what the person did, then optionally
-provide background information. The model will explain the likely drivers.
+You will be prompted to describe a behavior or scene. Background context is optional but improves specificity.
 
 ---
 
-## Everyday git workflow
+## Roadmap
 
-After the first push, use this whenever you make changes:
+| Phase | Status | Description |
+|-------|--------|-------------|
+| v1 — Keyword matching | ✅ Complete | Baseline framework classification |
+| v2 — QLoRA fine-tuning | 🔄 In progress | Full training pipeline on Mistral-7B |
+| v3 — Crime scene mode | 📋 Planned | Forensic scene → perpetrator mental state |
+| v4 — Multi-source training | 📋 Planned | Religious texts, criminology literature |
+| v5 — Web interface | 📋 Planned | Gradio or FastAPI frontend |
+
+---
+
+## Tech Stack
+
+| Component | Technology |
+|-----------|-----------|
+| Base model | Mistral-7B-Instruct-v0.2 |
+| Fine-tuning | QLoRA via PEFT |
+| Quantization | bitsandbytes 4-bit NF4 |
+| Training framework | HuggingFace Transformers |
+| Experiment tracking | Weights & Biases |
+| Data collection | PRAW, Kaggle CLI, HuggingFace Datasets |
+| Interface | CLI (now) → Gradio (planned) |
+
+---
+
+## Academic Context
+
+This project sits at the intersection of:
+
+- **Computational psychology** — modeling human motivation computationally
+- **Forensic AI** — applying language models to behavioral reconstruction
+- **Explainable AI** — producing structured, citable reasoning rather than black-box outputs
+- **Cross-cultural NLP** — training on philosophical and religious frameworks across traditions
+
+Independent research project. BTech student, 4th semester.
+
+---
+
+## Git Workflow
 
 ```bash
 git add .
-git commit -m "your message here"
+git commit -m "your message"
 git push origin main
 ```
 
-Common commit messages for this project:
-- `data: add cleaned training pairs`
-- `train: adjust LoRA rank and learning rate`
-- `fix: handle empty Reddit comments in build_dataset`
-- `feat: add history-aware prompt in inference`
+Suggested commit prefixes:
+- `data:` — dataset changes
+- `train:` — training script or config changes
+- `feat:` — new feature
+- `fix:` — bug fix
+- `docs:` — README or documentation
 
 ---
 
-## Tech stack
-
-| Component | Library |
-|-----------|---------|
-| Base model | Mistral-7B-Instruct-v0.2 |
-| Fine-tuning method | QLoRA via PEFT |
-| Quantization | bitsandbytes (4-bit NF4) |
-| Training framework | HuggingFace Transformers + Trainer |
-| Data collection | PRAW (Reddit), Kaggle CLI |
-| Experiment tracking | Weights & Biases |
-| Interface | Gradio (coming) / CLI (now) |
+*Built independently. Ongoing.*
