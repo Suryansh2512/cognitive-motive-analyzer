@@ -33,8 +33,8 @@ TRAIN_FILE  = Path("data/cleaned/train.jsonl")
 VAL_FILE    = Path("data/cleaned/val.jsonl")
 OUTPUT_DIR  = Path("models/motive-model")
 
-MAX_LENGTH  = 128    # was 256
-BATCH_SIZE  = 4      # keep
+MAX_LENGTH  = 512    # was 128
+BATCH_SIZE  = 2      # keep(changed)
 GRAD_ACCUM  = 2      # was 4
 EPOCHS      = 1      # keep
 LR          = 2e-4
