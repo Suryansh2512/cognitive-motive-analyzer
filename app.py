@@ -1,5 +1,6 @@
 """Gradio MVP for the Cognitive Motive Analyzer."""
 
+import spaces
 import gradio as gr
 
 from src.model.inference import analyze
@@ -123,6 +124,7 @@ def begin_analysis():
     return LAMP_FLICKER, ""
 
 
+@spaces.GPU(duration=60)
 def run_analysis(action: str, religion: str, trauma: str, relationships: str, career: str) -> str:
     if not action or not action.strip():
         raise gr.Error("Describe the behavior before starting the assessment.")
@@ -189,4 +191,4 @@ with gr.Blocks() as demo:
 
 
 if __name__ == "__main__":
-  demo.launch(css=CSS, server_name="127.0.0.1", server_port=7860)
+  demo.launch(css=CSS, server_name="0.0.0.0", server_port=7860)

@@ -58,6 +58,7 @@ huggingface-hub>=0.22.0       # upload / download models from HF Hub
 
 # ── Interface ─────────────────────────────────────────────────────────────────
 gradio>=4.0.0                 # quick web UI for demos
+spaces>=0.36.0                # free Hugging Face ZeroGPU execution
 fastapi>=0.110.0              # REST API (for later web app backend)
 uvicorn>=0.29.0               # ASGI server to run FastAPI
 
