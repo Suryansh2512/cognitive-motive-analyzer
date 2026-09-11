@@ -3,7 +3,7 @@
 > *"The detective does not guess. He reasons. Every broken object, every open door, every missing word is a sentence in a confession."*
 
 A forensic behavioral AI that reasons about **why** people do things — not just what they did.  
-Fine-tuned on Mistral-7B-Instruct using QLoRA, drawing from psychology, philosophy, criminology, and religious texts.
+Fine-tuned on Llama 3.1 8B Instruct using QLoRA, drawing from psychology, philosophy, criminology, and religious texts.
 
 ---
 
@@ -77,7 +77,7 @@ cognitive-motive-analyzer/
 │   ├── download_data.py      ← pulls behavioral datasets from Kaggle/HF
 │   ├── scrape_reddit.py      ← scrapes live Reddit posts via PRAW
 │   ├── build_dataset.py      ← formats raw data into training pairs
-│   └── train.py              ← QLoRA fine-tuning on Mistral-7B
+│   └── train.py              ← QLoRA fine-tuning on Llama 3.1 8B Instruct
 │
 ├── src/
 │   ├── model/
@@ -86,7 +86,7 @@ cognitive-motive-analyzer/
 │       └── history.py        ← saves and loads session history
 │
 ├── models/
-│   └── motive-model/         ← trained LoRA adapter (gitignored)
+│   └── llama-3.1-motive-model/ ← trained LoRA adapter (gitignored)
 │
 ├── main.py                   ← CLI entry point
 ├── requirements.txt
@@ -194,11 +194,11 @@ python scripts/scrape_reddit.py
 # 3. Clean and format into training pairs
 python scripts/build_dataset.py
 
-# 4. Fine-tune Mistral-7B with QLoRA (~2–4 hours on RTX 4060)
+# 4. Fine-tune Llama 3.1 8B Instruct with QLoRA (requires an approved Hugging Face token)
 python scripts/train.py
 ```
 
-Trained adapter is saved to `models/motive-model/`.
+Trained adapter is saved to `models/llama-3.1-motive-model/`.
 
 ### Training Data Philosophy
 
@@ -228,7 +228,7 @@ You will be prompted to describe a behavior or scene. Background context is opti
 | Phase | Status | Description |
 |-------|--------|-------------|
 | v1 — Keyword matching | ✅ Complete | Baseline framework classification |
-| v2 — QLoRA fine-tuning | 🔄 In progress | Full training pipeline on Mistral-7B |
+| v2 — QLoRA fine-tuning | 🔄 In progress | Full training pipeline on Llama 3.1 8B Instruct |
 | v3 — Crime scene mode | 📋 Planned | Forensic scene → perpetrator mental state |
 | v4 — Multi-source training | 📋 Planned | Religious texts, criminology literature |
 | v5 — Web interface | 📋 Planned | Gradio or FastAPI frontend |
@@ -239,7 +239,7 @@ You will be prompted to describe a behavior or scene. Background context is opti
 
 | Component | Technology |
 |-----------|-----------|
-| Base model | Mistral-7B-Instruct-v0.2 |
+| Base model | meta-llama/Llama-3.1-8B-Instruct |
 | Fine-tuning | QLoRA via PEFT |
 | Quantization | bitsandbytes 4-bit NF4 |
 | Training framework | HuggingFace Transformers |

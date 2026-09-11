@@ -13,51 +13,79 @@ Before running, make sure you have trained the model:
     python scripts/train.py
 """
 
-from src.model.inference import analyze
 from src.memory.history import save_case
+from src.model.inference import analyze
+
+WIDTH = 72
+
+
+def print_header() -> None:
+    print()
+    print("=" * WIDTH)
+    print("COGNITIVE MOTIVE ANALYZER".center(WIDTH))
+    print("Behavioral reasoning workspace | Llama 3.1 8B Instruct".center(WIDTH))
+    print("=" * WIDTH)
+
+
+def print_section(title: str) -> None:
+    print()
+    print(title.upper())
+    print("-" * len(title))
+
+
+def print_report(action: str, history: dict, result: str) -> None:
+    print_header()
+    print_section("Case summary")
+    print(f"Observed behavior: {action}")
+
+    print_section("Context")
+    if history:
+        for key, value in history.items():
+            print(f"{key.title():<18} {value}")
+    else:
+        print("No additional context provided.")
+
+    print_section("Analysis")
+    print(result.strip())
+    print()
+    print("=" * WIDTH)
+    print("Assessment complete | Three competing hypotheses generated")
+    print("=" * WIDTH)
 
 
 def get_history() -> dict:
-    """Optionally collect background info about the person."""
-    print("\nDo you have background info about this person? (press Enter to skip each)")
-    history = {}
-
+    print_section("Optional context")
+    print("Press Enter to skip any field.")
     fields = {
-        "religion":      "Religion / cultural background",
-        "trauma":        "Past traumas or significant events",
+        "religion": "Religion / cultural background",
+        "trauma": "Past traumas or significant events",
         "relationships": "Relationship or family context",
-        "career":        "Career or financial situation",
+        "career": "Career or financial situation",
     }
-
+    history = {}
     for key, label in fields.items():
         value = input(f"  {label}: ").strip()
         if value:
             history[key] = value
-
     return history
 
 
 def main():
-    print("=" * 55)
-    print("  Cognitive Motive Analyzer")
-    print("=" * 55)
+    print_header()
 
-    action = input("\nDescribe what the person did:\n> ").strip()
+    print_section("New case")
+    action = input("Describe the observed behavior:\n> ").strip()
     if not action:
         print("No action entered.")
         return
 
     history = get_history()
+    print("\nAnalyzing case. Please wait...\n")
+    result = analyze(action, history or None)
 
-    print("\nAnalyzing...\n")
-    result = analyze(action=action, history=history if history else None)
-
-    print("─" * 55)
-    print(result)
-    print("─" * 55)
-
-    save_case(action, {"history": history, "analysis": result})
-    print("\n(Saved to data/history.json)")
+    print_report(action, history, result)
+    save_case(action, {"history": history, "analysis": result, "model": "meta-llama/Llama-3.1-8B-Instruct"})
+    print("Case saved to data/history.json")
 
 
 if __name__ == "__main__":
